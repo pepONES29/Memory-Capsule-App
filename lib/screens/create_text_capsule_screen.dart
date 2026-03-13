@@ -1,0 +1,243 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
+import 'capsule_gallery_screen.dart';
+import 'home_screen.dart';
+import '../designs/gradient_background.dart';
+
+class CreateTextCapsuleScreen extends StatefulWidget {
+  final int userId; // Accept userId as a parameter
+
+  const CreateTextCapsuleScreen({super.key, required this.userId});
+
+  @override
+  State<CreateTextCapsuleScreen> createState() =>
+      _CreateTextCapsuleScreenState();
+}
+
+class _CreateTextCapsuleScreenState extends State<CreateTextCapsuleScreen> {
+  String selectedTime = "1 month";
+  LatLng selectedLocation = LatLng(51.505, -0.09);
+  late MapController _mapController;
+
+  @override
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+    _initializeLocation();
+  }
+
+  Future<void> _initializeLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      permission = await Geolocator.requestPermission();
+      if (permission != LocationPermission.whileInUse &&
+          permission != LocationPermission.always) {
+        return;
+      }
+    }
+
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    setState(() {
+      selectedLocation = LatLng(position.latitude, position.longitude);
+    });
+
+    _mapController.move(selectedLocation, 13.0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: GradientBackground(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Create a Text Capsule',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 20.0),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: const TextField(
+                    maxLines: 6,
+                    decoration: InputDecoration.collapsed(
+                      hintText: 'Write your memory here...',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20.0),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: const TextField(
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.title, color: Colors.purple),
+                      hintText: 'Title of your memory',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                Container(
+                  height: 200.0,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: selectedLocation,
+                      initialZoom: 13.0,
+                      onTap: (tapPosition, latLng) {
+                        setState(() {
+                          selectedLocation = latLng;
+                        });
+                      },
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        subdomains: ['a', 'b', 'c'],
+                      ),
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: selectedLocation,
+                            width: 40.0,
+                            height: 40.0,
+                            child: Icon(
+                              Icons.location_pin,
+                              size: 40.0,
+                              color: Colors.purple,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: DropdownButtonFormField<String>(
+                    value: selectedTime,
+                    items: [
+                      "1 month",
+                      "3 months",
+                      "6 months",
+                      "1 year",
+                      "2 years",
+                    ].map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.timer, color: Colors.purple),
+                      border: InputBorder.none,
+                    ),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedTime = newValue!;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 50.0),
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CapsuleGalleryScreen(
+                            userId: widget.userId, // Pass the userId
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 90,
+                      height: 90,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
+                      child: const Icon(
+                        Icons.lock,
+                        size: 50.0,
+                        color: Color(0xFFAC08D9),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20.0),
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HomeScreen(
+                            userId: widget.userId, // Pass the userId
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 70,
+                      height: 70,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
+                      child: const Icon(
+                        Icons.home,
+                        size: 40.0,
+                        color: Color(0xFFAC08D9),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
