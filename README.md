@@ -77,3 +77,9 @@ For Developers (Source Code Exploration)
 - LLM Integration: Because a Large Language Model (LLM) has not been integrated yet, the Daily Good Deed, Adventure, and Preferences Pyramid features are currently non-functional outlines.
 
 - Demonstration Capsule: To view the "unlock" experience immediately, one pre-ready capsule is available in the Capsule Gallery for demonstration purposes.
+
+
+
+👥 Authors
+* **Mihnea-Călin Archiudean** - https://github.com/pepONES29
+* **Tudor Moldovan** - https://github.com/Mudor64
